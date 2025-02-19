@@ -1,5 +1,13 @@
 import express from 'express'
+import dotenv from 'dotenv'
+import mongoos from 'mongoose'
 
+dotenv.config()
+mongoose.connect(process.env.MONGO).then(()=>{
+    console.log("Connected to MongoDb bro!");
+}).catch((err)=>{
+    console.log(err);
+})
 const app=express();
 
 app.listen(3000,()=>{
