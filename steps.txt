@@ -1,1 +1,8 @@
 after installing tailwindcss,
+
+//client
+npm i react-icons
+
+//api
+npm i express nodemon mongoose mongodb dotenv bcryptjs cors jsonwebtoken cookie-parser
+
