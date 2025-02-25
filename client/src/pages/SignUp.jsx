@@ -1,49 +1,51 @@
 import React, { useState } from "react";
-import { Link,useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const SignUp=()=> {
-  const [formData,setFormData]=useState({});
-  const [loading,setloading]=useState(false);
-  const [error,setError]=useState(null);
-  const navigate=useNavigate();
+const SignUp = () => {
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const handleChange=(e)=>{
+  const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.id]:e.target.value,
+      [e.target.id]: e.target.value,
     });
   };
 
-  const handleSubmit=async(e)=>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setloading(true);
+    setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
-          "Content-Type":"application/json",
+          "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
-      const data=await res.json();
-      if (!res.ok)
-        {
-        throw new Error(data.message||"Signup failed");
+      let data;
+      try {
+        data = await res.json(); // Ensure JSON parsing is safe
+      } catch {
+        throw new Error("Invalid response from server");
+      }
+
+      if (!res.ok) {
+        throw new Error(data.message || "Signup failed");
       }
       console.log(data);
-      if(data.success===true)
-       { navigate('/signin');
-       }
-    } 
-    catch(err)
-    {
+      if (data.success === true) {
+        navigate("/signin");
+      }
+    } catch (err) {
       setError(err.message);
-    } 
-    finally 
-    {
-      setloading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
