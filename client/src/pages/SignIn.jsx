@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { signInFailure, signInStart, signInSuccess } from "../../redux/user/userSlice";
 
 const SignIn = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null); // Added state for success message
+  const [formData, setFormData] = useState({});
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({
@@ -20,9 +18,14 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null); // Reset success message on new submit
+
+    // ✅ Prevent sending empty fields
+    if (!formData.email || !formData.password) {
+      dispatch(signInFailure("Email and password are required."));
+      return;
+    }
+
+    dispatch(signInStart());
 
     try {
       const res = await fetch("/api/auth/signin", {
@@ -34,30 +37,31 @@ const SignIn = () => {
         body: JSON.stringify(formData),
       });
 
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid response from server");
+      }
+
       if (!res.ok) {
-        let errorMessage = "Login Failed"; // Default error message
-        try {
-          const errorData = await res.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (err) {
-          console.error("Error parsing JSON:", err);
+        if (res.status === 400) {
+          throw new Error("Invalid input. Please check your details.");
+        } else if (res.status === 401) {
+          throw new Error("Wrong credentials. Please check your email and password.");
+        } else if (res.status === 404) {
+          throw new Error("User does not exist. Please sign up.");
+        } else if (res.status === 500) {
+          throw new Error("Server error. Please try again later.");
+        } else {
+          throw new Error(data.message || "Sign-in failed");
         }
-        throw new Error(errorMessage);
       }
 
-      const data = await res.json();
-      console.log("Login Success:", data);
-      setSuccess("Login Successful"); // Set success message
-
-      if (data.success) {
-        setTimeout(() => {
-          navigate("/"); // Ensure navigation happens after success message
-        }, 1000);
-      }
+      dispatch(signInSuccess(data));
+      navigate("/");
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      dispatch(signInFailure(err.message));
     }
   };
 
@@ -67,7 +71,6 @@ const SignIn = () => {
         Sign In
       </h1>
       {error && <p className="text-red-500 text-center">{error}</p>}
-      {success && <p className="text-green-500 text-center">{success}</p>}
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input
           type="email"
@@ -75,8 +78,6 @@ const SignIn = () => {
           className="bg-slate-200 text-cyan-700 border p-3 rounded-lg"
           id="email"
           onChange={handleChange}
-          value={formData.email}
-          autoComplete="email"
         />
         <input
           type="password"
@@ -84,8 +85,6 @@ const SignIn = () => {
           className="bg-slate-200 text-cyan-700 border p-3 rounded-lg"
           id="password"
           onChange={handleChange}
-          value={formData.password}
-          autoComplete="current-password"
         />
         <button
           className="bg-slate-700 text-cyan-300 p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
@@ -95,7 +94,7 @@ const SignIn = () => {
         </button>
       </form>
       <div className="flex flex-row mx-auto mt-2 gap-2 justify-center text-red-500 font-semibold">
-        <p>Wanna Create an Account?</p>
+        <p>Don't have an account?</p>
         <Link to={"/signup"} className="text-blue-500 font-semibold">
           Sign Up
         </Link>
