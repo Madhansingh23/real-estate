@@ -1,41 +1,48 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 
-const SignUp = () => {
-  const [formData, setFormData] = useState({});
-  const [loading, setloading] = useState(false);
-  const [error, setError] = useState(null);
+const SignUp=()=> {
+  const [formData,setFormData]=useState({});
+  const [loading,setloading]=useState(false);
+  const [error,setError]=useState(null);
+  const navigate=useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange=(e)=>{
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value,
+      [e.target.id]:e.target.value,
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit=async(e)=>{
     e.preventDefault();
     setloading(true);
     setError(null);
-
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":"application/json",
         },
         body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Signup failed");
+      const data=await res.json();
+      if (!res.ok)
+        {
+        throw new Error(data.message||"Signup failed");
       }
-
       console.log(data);
-    } catch (err) {
+      if(data.success===true)
+       { navigate('/signin');
+       }
+    } 
+    catch(err)
+    {
       setError(err.message);
-    } finally {
+    } 
+    finally 
+    {
       setloading(false);
     }
   };
@@ -72,7 +79,7 @@ const SignUp = () => {
           className="bg-slate-700 text-cyan-300 p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
           disabled={loading}
         >
-          {loading ? "Loading..." : "Submit"}
+          {loading ? "Loading..." : "Sign Up"}
         </button>
       </form>
       <div className="flex flex-row mx-auto mt-2 gap-2 justify-center text-red-500 font-semibold">
