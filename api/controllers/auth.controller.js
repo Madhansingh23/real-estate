@@ -3,10 +3,10 @@ import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/errorHandler.js";
 import jwt from 'jsonwebtoken';
 
-export const signup = async (req, res, next) => {
+export const signup=async(req, res, next) => {
   try {
     const { username, email, password } = req.body;
-    if (!username || !email || !password) { // Check if all fields are provided
+    if (!username || !email || !password) { 
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -61,6 +61,6 @@ export const signin = async (req, res, next) => {
       .json({ success: true, ...rest }); // Ensure { success: true } is returned
   } catch (error) {
     console.error("Signin Error:", error); // Logs error in backend for debugging
-    next(error);
+    // next(errorHandler(550,"Error from signin"));
   }
 };
